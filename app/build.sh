@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pip install -r requirements.txt
-python3 main.py
+pip3 install -r app/requirements.txt
+python3 app/main.py
 
 exit
