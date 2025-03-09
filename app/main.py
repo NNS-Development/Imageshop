@@ -4,36 +4,60 @@ import os
 import struct
 import math
 
-pathIn = Path('app/imgs')
-pathOut = Path('app/editedImgs')
-os.makedirs(pathOut, exist_ok=True)
-os.makedirs(pathIn, exist_ok=True)
+def choose_directory(prompt):
+    path = Path(input(prompt))
+    os.makedirs(path, exist_ok=True)
+    return path
 
-welcome_message = "Welcome!"
+def load_image(file_path):
+    return Image.open(file_path)
 
-def choose_pathOut():
-    global pathOut 
-    pathOut = Path(input("Please enter output directory for images: "))
-    os.makedirs(pathOut, exist_ok=True)
-    
-def choose_pathIn():
-    global pathIn 
-    pathIn = Path(input("Please enter input directory for images: "))
-    
-def choose_imageIn():
-    global imageIn
-    imageIn = Path(input("Please enter in the directory of your image: "))
-    
-def single_edit_mode():
+def save_image(image, file_path):
+    image.save(file_path)
+
+def enhance_image(fileIn, fileOut, clean_name, enhancement, factor, suffix):
+    image = load_image(fileIn)
+    enhancer = enhancement(image)
+    enhanced_image = enhancer.enhance(factor)
+    save_image(enhanced_image, fileOut / f"{clean_name}_{suffix}.png")
+
+def contrast(fileIn, fileOut, clean_name):
+    enhance_image(fileIn, fileOut, clean_name, ImageEnhance.Contrast, 2, "contrast")
+
+def sharpen(fileIn, fileOut, clean_name):
+    enhance_image(fileIn, fileOut, clean_name, ImageEnhance.Sharpness, 2, "sharpen")
+
+def grayscale(fileIn, fileOut, clean_name):
+    image = load_image(fileIn)
+    grayscale_image = image.convert("L")
+    save_image(grayscale_image, fileOut / f"{clean_name}_grayscale.png")
+
+def rotate(fileIn, fileOut, clean_name, angle):
+    image = load_image(fileIn)
+    rotated_image = image.rotate(angle)
+    save_image(rotated_image, fileOut / f"{clean_name}_rotate.png")
+
+def edit_image(fileIn, fileOut, clean_name, edit_function, *args):
+    os.makedirs(fileOut, exist_ok=True)
+    edit_function(fileIn, fileOut, clean_name, *args)
+
+def single_edit_mode(pathIn, pathOut):
     filename = input("Please enter the filename of the image to edit: ")
     fileIn = pathIn / filename
     clean_name = os.path.splitext(filename)[0]
     fileOut = pathOut / clean_name
-    os.makedirs(fileOut, exist_ok=True)
+
+    edit_options = {
+        '1': contrast,
+        '2': sharpen,
+        '3': grayscale,
+        '4': rotate,
+        '5': lambda *args: print("Exiting single edit mode.")
+    }
 
     while True:
         choice = input(
-            '''
+'''
 Please choose an edit option:
     1. Contrast
     2. Sharpen
@@ -42,62 +66,72 @@ Please choose an edit option:
     5. Quit
 '''
         )
-        if choice == '1':
-            contrast(fileIn, fileOut, clean_name)
-        elif choice == '2':
-            sharpen(fileIn, fileOut, clean_name)
-        elif choice == '3':
-            grayscale(fileIn, fileOut, clean_name)
-        elif choice == '4':
-            angle = int(input("Please enter the rotation angle: "))
-            rotate(fileIn, fileOut, clean_name, angle)
-        elif choice == '5':
-            print("Exiting single edit mode.")
-            break
+        if choice in edit_options:
+            if choice == '4':
+                angle = int(input("Please enter the rotation angle: "))
+                edit_image(fileIn, fileOut, clean_name, edit_options[choice], angle)
+            elif choice == '5':
+                edit_options[choice]()
+                break
+            else:
+                edit_image(fileIn, fileOut, clean_name, edit_options[choice])
         else:
             print("Invalid input. Please enter a valid number.")
-    
 
-def load_image(file_path):
-    return Image.open(file_path)
+def mass_edit_mode(pathIn, pathOut):
+    edit_options = {
+        '1': contrast,
+        '2': sharpen,
+        '3': grayscale,
+        '4': rotate,
+        '5': lambda: print("Exiting mass edit mode.")
+    }
 
-def save_image(image, file_path):
-    image.save(file_path)
-
-def contrast(fileIn, fileOut, clean_name):
-    image = load_image(fileIn)
-    enhancer = ImageEnhance.Contrast(image)
-    enhanced_image = enhancer.enhance(2)  # Increase contrast
-    save_image(enhanced_image, fileOut / f"{clean_name}_contrast.png")
-
-def sharpen(fileIn, fileOut, clean_name):
-    image = load_image(fileIn)
-    enhancer = ImageEnhance.Sharpness(image)
-    enhanced_image = enhancer.enhance(2)  # Increase sharpness
-    save_image(enhanced_image, fileOut / f"{clean_name}_sharpen.png")
-
-def grayscale(fileIn, fileOut, clean_name):
-    image = load_image(fileIn)
-    grayscale_image = image.convert("L")  # Convert to grayscale
-    save_image(grayscale_image, fileOut / f"{clean_name}_grayscale.png")
-
-def rotate(fileIn, fileOut, clean_name, angle):
-    image = load_image(fileIn)
-    rotated_image = image.rotate(angle)  # Rotate image
-    save_image(rotated_image, fileOut / f"{clean_name}_rotate.png")
+    while True:
+        choice = input(
+'''
+Please choose an edit option for all images:
+    1. Contrast
+    2. Sharpen
+    3. Grayscale
+    4. Rotate
+    5. Quit
+'''
+        )
+        if choice in edit_options:
+            if choice == '4':
+                angle = int(input("Please enter the rotation angle: "))
+                for filename in os.listdir(pathIn):
+                    fileIn = pathIn / filename
+                    clean_name = os.path.splitext(filename)[0]
+                    fileOut = pathOut / clean_name
+                    edit_image(fileIn, fileOut, clean_name, edit_options[choice], angle)
+            elif choice == '5':
+                edit_options[choice]()
+                break
+            else:
+                for filename in os.listdir(pathIn):
+                    fileIn = pathIn / filename
+                    clean_name = os.path.splitext(filename)[0]
+                    fileOut = pathOut / clean_name
+                    edit_image(fileIn, fileOut, clean_name, edit_options[choice])
+        else:
+            print("Invalid input. Please enter a valid number.")
 
 def main():
-    print(welcome_message)
-    askout = input("Would you like to change the output directory? (y/n): ")
-    if askout == 'y':
-        choose_pathOut()
-    askin = input("Would you like to change the input directory? (y/n): ")
-    if askin == 'y':
-        choose_pathIn()
-    instance()
+    print("Welcome!")
+    pathOut = choose_directory("Please enter output directory for images: ") if input("Would you like to change the output directory? (y/n): ") == 'y' else Path('app/editedImgs')
+    pathIn = choose_directory("Please enter input directory for images: ") if input("Would you like to change the input directory? (y/n): ") == 'y' else Path('app/imgs')
 
-def instance():
-    choice = input(
+    options = {
+        '1': lambda: choose_directory("Please enter output directory for images: "),
+        '2': lambda: mass_edit_mode(pathIn, pathOut),
+        '3': lambda: single_edit_mode(pathIn, pathOut),
+        '4': lambda: print("Goodbye!")
+    }
+
+    while True:
+        choice = input(
 '''
 Please enter in the corresponding number:
     1. Change Output Directory
@@ -105,21 +139,13 @@ Please enter in the corresponding number:
     3. Single edit mode
     4. Quit
 '''
-    )
-    if choice == '1':
-        choose_pathOut()
-        instance()
-    elif choice == '2':
-        mass_edit_mode()
-        instance()
-    elif choice == '3':
-        single_edit_mode()
-        instance()
-    elif choice == '4':
-        print("Goodbye!")
-    else:
-        print("Invalid input. Please enter a valid number.")
-        instance()
-    
+        )
+        if choice in options:
+            options[choice]()
+            if choice == '4':
+                break
+        else:
+            print("Invalid input. Please enter a valid number.")
+
 if __name__ == "__main__":
     main()
