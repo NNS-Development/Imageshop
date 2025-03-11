@@ -1,0 +1,2 @@
+('/home/luna/repos/imageshop/app/temp/build_pyinstaller/imageshop/PYZ-00.pyz',
+ [])

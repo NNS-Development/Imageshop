@@ -26,9 +26,6 @@ python -m PyInstaller \
     --distpath=./dist \
     --log-level=ERROR \
     --runtime-tmpdir=. \
-    --hidden-import=tqdm \
-    --hidden-import=colorama \
-    --hidden-import=encodings \
     --exclude-module ssl \
     --exclude-module lzma \
     --exclude-module pytest \
