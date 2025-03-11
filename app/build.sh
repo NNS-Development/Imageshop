@@ -8,7 +8,7 @@ export CFLAGS="-O3 -march=native -flto -fno-semantic-interposition -fomit-frame-
 export LDFLAGS="-O3 -flto -Wl,--as-needed"
 
 pip install --no-cache-dir -r requirements.txt || echo "no requirements.txt found"
-pip install --no-cache-dir --upgrade cython setuptools
+pip install --no-cache-dir --upgrade cython setuptools pyinstaller
 
 python setup.py build_ext \
     --build-lib=temp \

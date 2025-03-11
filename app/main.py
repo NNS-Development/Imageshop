@@ -1,8 +1,8 @@
-from PIL import Image, ImageEnhance, ImageFilter
-from pathlib import Path
+# from PIL import Image, ImageEnhance, ImageFilter
+# from pathlib import Path
 import os
-import struct
-import math
+# import struct
+# import math
 
 def choose_directory(prompt):
     path = Path(input(prompt))
