@@ -1,5 +1,5 @@
 from typing import Any, List
-from setuptools import setup, Extension # type: ignore
+from setuptools import setup # type: ignore
 from Cython.Build import cythonize # type: ignore
 from Cython.Compiler import Options # type: ignore
 

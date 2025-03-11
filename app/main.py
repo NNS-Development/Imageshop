@@ -1,12 +1,10 @@
-# from PIL import Image, ImageEnhance, ImageFilter
-# from pathlib import Path
-import os
-# import struct
-# import math
+from PIL import Image, ImageEnhance
+from pathlib import Path
+from os import makedirs, path, listdir
 
 def choose_directory(prompt):
     path = Path(input(prompt))
-    os.makedirs(path, exist_ok=True)
+    makedirs(path, exist_ok=True)
     return path
 
 def load_image(file_path):
@@ -38,13 +36,13 @@ def rotate(fileIn, fileOut, clean_name, angle):
     save_image(rotated_image, fileOut / f"{clean_name}_rotate.png")
 
 def edit_image(fileIn, fileOut, clean_name, edit_function, *args):
-    os.makedirs(fileOut, exist_ok=True)
+    makedirs(fileOut, exist_ok=True)
     edit_function(fileIn, fileOut, clean_name, *args)
 
 def single_edit_mode(pathIn, pathOut):
     filename = input("Please enter the filename of the image to edit: ")
     fileIn = pathIn / filename
-    clean_name = os.path.splitext(filename)[0]
+    clean_name = path.splitext(filename)[0]
     fileOut = pathOut / clean_name
 
     edit_options = {
@@ -101,18 +99,18 @@ Please choose an edit option for all images:
         if choice in edit_options:
             if choice == '4':
                 angle = int(input("Please enter the rotation angle: "))
-                for filename in os.listdir(pathIn):
+                for filename in listdir(pathIn):
                     fileIn = pathIn / filename
-                    clean_name = os.path.splitext(filename)[0]
+                    clean_name = path.splitext(filename)[0]
                     fileOut = pathOut / clean_name
                     edit_image(fileIn, fileOut, clean_name, edit_options[choice], angle)
             elif choice == '5':
                 edit_options[choice]()
                 break
             else:
-                for filename in os.listdir(pathIn):
+                for filename in listdir(pathIn):
                     fileIn = pathIn / filename
-                    clean_name = os.path.splitext(filename)[0]
+                    clean_name = path.splitext(filename)[0]
                     fileOut = pathOut / clean_name
                     edit_image(fileIn, fileOut, clean_name, edit_options[choice])
         else:
